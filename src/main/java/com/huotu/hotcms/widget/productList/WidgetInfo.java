@@ -12,7 +12,9 @@ package com.huotu.hotcms.widget.productList;
 import com.huotu.hotcms.service.common.ContentType;
 import com.huotu.hotcms.service.entity.Article;
 import com.huotu.hotcms.service.entity.Category;
+import com.huotu.hotcms.service.entity.MallClassCategory;
 import com.huotu.hotcms.service.entity.MallProductCategory;
+import com.huotu.hotcms.service.exception.PageNotFoundException;
 import com.huotu.hotcms.service.model.MallProductCategoryModel;
 import com.huotu.hotcms.service.repository.ArticleRepository;
 import com.huotu.hotcms.service.repository.CategoryRepository;
@@ -24,9 +26,14 @@ import com.huotu.hotcms.widget.ComponentProperties;
 import com.huotu.hotcms.widget.PreProcessWidget;
 import com.huotu.hotcms.widget.Widget;
 import com.huotu.hotcms.widget.WidgetStyle;
+import com.huotu.hotcms.widget.entity.PageInfo;
+import com.huotu.hotcms.widget.service.CMSDataSourceService;
+import com.huotu.hotcms.widget.service.PageService;
 import com.huotu.huobanplus.common.entity.Goods;
 import com.huotu.huobanplus.sdk.common.repository.GoodsRestRepository;
 import me.jiangcai.lib.resource.service.ResourceService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -56,6 +63,8 @@ public class WidgetInfo implements Widget, PreProcessWidget {
     private static final String RIGHT_CONTENT = "rightArticle";
     private static final String MALL_PRODUCT_DATA_LIST = "mallProductDataList";
     private static final String MALL_PRODUCT_CATEGORY = "mallProductCategory";
+    private static final Log log = LogFactory.getLog(WidgetInfo.class);
+
 
     @Override
     public String groupId() {
@@ -171,27 +180,29 @@ public class WidgetInfo implements Widget, PreProcessWidget {
                 leftSerial);
         Article rightArticle = articleRepository.findByCategory_SiteAndSerial(CMSContext.RequestContext().getSite(),
                 rightSerial);
-        variables.put(LEFT_CONTENT,leftArticle);
-        variables.put(RIGHT_CONTENT,rightArticle);
+        variables.put(LEFT_CONTENT, leftArticle);
+        variables.put(RIGHT_CONTENT, rightArticle);
 
         String mallProductSerial = (String) variables.get(MALL_PRODUCT_SERIAL);
         MallProductCategoryRepository mallProductCategoryRepository = CMSContext.RequestContext()
                 .getWebApplicationContext().getBean(MallProductCategoryRepository.class);
         List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_Serial(CMSContext
-                .RequestContext().getSite(),mallProductSerial);
+                .RequestContext().getSite(), mallProductSerial);
         GoodsRestRepository goodsRestRepository = CMSContext.RequestContext().getWebApplicationContext().getBean
                 (GoodsRestRepository.class);
-        Pageable pageable = new PageRequest(0,8, Sort.Direction.ASC,"id");
+        Pageable pageable = new PageRequest(0, 8, Sort.Direction.ASC, "id");
         List<MallProductCategoryModel> list = new ArrayList<>();
-        for (MallProductCategory mallProductCategory :dataList){
+        for (MallProductCategory mallProductCategory : dataList) {
             try {
-                Page<Goods> goodsPage=goodsRestRepository.search(mallProductCategory.getSite().getOwner()
+                Page<Goods> goodsPage = goodsRestRepository.search(mallProductCategory.getSite().getOwner()
                                 .getCustomerId(),
                         mallProductCategory
-                        .getMallCategoryId(),null,mallProductCategory.getMallBrandId(),mallProductCategory.getMinPrice()
-                        ,mallProductCategory.getMaxPrice(),null,mallProductCategory.getGoodTitle(),mallProductCategory
-                                .getSalesCount(),mallProductCategory.getStock(),mallProductCategory.getDisabled(),
-                        mallProductCategory.getMarkerTable(),pageable);
+                                .getMallCategoryId(), null, mallProductCategory.getMallBrandId(), mallProductCategory.getMinPrice()
+                        , mallProductCategory.getMaxPrice(), null, mallProductCategory.getGoodTitle(), mallProductCategory
+                                .getSalesCount(), mallProductCategory.getStock(), mallProductCategory.getDisabled(),
+                        mallProductCategory.getMarkerTable(), pageable);
+                //todo 商品数据源对应的内容页
+                setContentURI(variables,mallProductCategory);
                 MallProductCategoryModel mallProductCategoryModel = mallProductCategory.toMallProductCategoryModel();
                 mallProductCategoryModel.setMallGoodsPage(goodsPage);
                 list.add(mallProductCategoryModel);
@@ -200,8 +211,20 @@ public class WidgetInfo implements Widget, PreProcessWidget {
             }
         }
         MallProductCategory mallProductCategory = mallProductCategoryRepository.findBySerial(mallProductSerial);
-        variables.put(MALL_PRODUCT_CATEGORY,mallProductCategory);
-        variables.put(MALL_PRODUCT_DATA_LIST,list);
+        variables.put(MALL_PRODUCT_CATEGORY, mallProductCategory);
+        variables.put(MALL_PRODUCT_DATA_LIST, list);
+
+    }
+
+    private void setContentURI(Map<String, Object> variables, MallProductCategory mallProductCategory) {
+        try {
+            PageInfo contentPage = CMSContext.RequestContext().getWebApplicationContext().getBean(PageService.class)
+                    .getClosestContentPage(mallProductCategory, (String) variables.get("uri"));
+            mallProductCategory.setContentURI(contentPage.getPagePath());
+        } catch (PageNotFoundException e) {
+            log.warn("...", e);
+            mallProductCategory.setContentURI((String) variables.get("uri"));
+        }
 
     }
 

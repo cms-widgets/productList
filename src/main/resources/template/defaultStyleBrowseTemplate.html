@@ -28,13 +28,16 @@
                     <div class="tab-content">
                         <ul>
                             <li class="goods-list-item goods-list-4" th:each="goods :${mallProduct.mallGoodsPage}">
-                                <a href="#" target="_blank" title="xxx" class="goods-image">
+                                <a href="#"
+                                   th:href="@{/${mallProduct.contentURI}/{contentSerial}(contentSerial='mallgood_'+${goods.id})}"
+                                   target="_blank" title="xxx" class="goods-image">
                                     <img th:src="${goods.smallPic.value}" width="130" height="130"
                                          th:alt="${goods.title}" alt="火图科技"
                                           src="//img10.360buyimg.com/N3/jfs/t1918/169/2366995781/85503/38fffc90/57057f7eN936fd6c0.jpg">
                                 </a>
                                 <p class="goods-name">
-                                    <a target="_blank" th:text="${goods.title}" href="#">
+                                    <a target="_blank" th:text="${goods.title}" href="#"
+                                       th:href="@{/${mallProduct.contentURI}/{contentSerial}(contentSerial='mallgood_'+${goods.id})}">
                                         华为 P9 全网通 3GB+32GB版 流光金 移动联通电信4G手机 双卡双待</a>
                                 </p>
                                 <div class="goods-price"><span
@@ -43,7 +46,6 @@
                         </ul>
                     </div>
                 </li>
-
             </ul>
         </div>
     </div>
