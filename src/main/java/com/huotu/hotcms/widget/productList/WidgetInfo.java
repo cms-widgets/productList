@@ -9,7 +9,9 @@
 
 package com.huotu.hotcms.widget.productList;
 
+import com.huotu.hotcms.service.common.ArticleSource;
 import com.huotu.hotcms.service.common.ContentType;
+import com.huotu.hotcms.service.common.SiteType;
 import com.huotu.hotcms.service.entity.Article;
 import com.huotu.hotcms.service.entity.Category;
 import com.huotu.hotcms.service.entity.MallClassCategory;
@@ -55,16 +57,15 @@ import java.util.Map;
  * @author CJ
  */
 public class WidgetInfo implements Widget, PreProcessWidget {
-    private static final String LEFT_ARTICLE_SERIAL = "leftArticleSerial";
-    private static final String RIGHT_ARTICLE_SERIAL = "rightArticleSerial";
+    private static final Log log = LogFactory.getLog(WidgetInfo.class);
+    public static final String LEFT_ARTICLE_SERIAL = "leftArticleSerial";
+    public static final String RIGHT_ARTICLE_SERIAL = "rightArticleSerial";
+    public static final String MALL_PRODUCT_SERIAL = "mallProductSerial";
     private static final String RIGHT_TITLE = "title";
-    private static final String MALL_PRODUCT_SERIAL = "mallProductSerial";
     private static final String LEFT_CONTENT = "leftArticle";
     private static final String RIGHT_CONTENT = "rightArticle";
     private static final String MALL_PRODUCT_DATA_LIST = "mallProductDataList";
     private static final String MALL_PRODUCT_CATEGORY = "mallProductCategory";
-    private static final Log log = LogFactory.getLog(WidgetInfo.class);
-
 
     @Override
     public String groupId() {
@@ -163,7 +164,6 @@ public class WidgetInfo implements Widget, PreProcessWidget {
             initMallProductCategory(mallProductCategory);
             properties.put(MALL_PRODUCT_SERIAL, mallProductCategory.getSerial());
         } else {
-            mallProductCategoryList.get(0).getParent();
             properties.put(MALL_PRODUCT_SERIAL, mallProductCategoryList.get(0).getSerial());
         }
         return properties;
@@ -172,8 +172,7 @@ public class WidgetInfo implements Widget, PreProcessWidget {
     @Override
     public void prepareContext(WidgetStyle style, ComponentProperties properties, Map<String, Object> variables
             , Map<String, String> parameters) {
-        ArticleRepository articleRepository = CMSContext.RequestContext().getWebApplicationContext().getBean
-                (ArticleRepository.class);
+        ArticleRepository articleRepository = getCMSServiceFromCMSContext(ArticleRepository.class);
         String leftSerial = (String) variables.get(LEFT_ARTICLE_SERIAL);
         String rightSerial = (String) variables.get(RIGHT_ARTICLE_SERIAL);
         Article leftArticle = articleRepository.findByCategory_SiteAndSerial(CMSContext.RequestContext().getSite(),
@@ -184,12 +183,10 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         variables.put(RIGHT_CONTENT, rightArticle);
 
         String mallProductSerial = (String) variables.get(MALL_PRODUCT_SERIAL);
-        MallProductCategoryRepository mallProductCategoryRepository = CMSContext.RequestContext()
-                .getWebApplicationContext().getBean(MallProductCategoryRepository.class);
+        MallProductCategoryRepository mallProductCategoryRepository = getCMSServiceFromCMSContext(MallProductCategoryRepository.class);
         List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_Serial(CMSContext
                 .RequestContext().getSite(), mallProductSerial);
-        GoodsRestRepository goodsRestRepository = CMSContext.RequestContext().getWebApplicationContext().getBean
-                (GoodsRestRepository.class);
+        GoodsRestRepository goodsRestRepository = getCMSServiceFromCMSContext(GoodsRestRepository.class);
         Pageable pageable = new PageRequest(0, 8, Sort.Direction.ASC, "id");
         List<MallProductCategoryModel> list = new ArrayList<>();
         for (MallProductCategory mallProductCategory : dataList) {
@@ -199,9 +196,8 @@ public class WidgetInfo implements Widget, PreProcessWidget {
                         mallProductCategory
                                 .getMallCategoryId(), null, mallProductCategory.getMallBrandId(), mallProductCategory.getMinPrice()
                         , mallProductCategory.getMaxPrice(), null, mallProductCategory.getGoodTitle(), mallProductCategory
-                                .getSalesCount(), mallProductCategory.getStock(), mallProductCategory.getDisabled(),
-                        mallProductCategory.getMarkerTable(), pageable);
-                //todo 商品数据源对应的内容页
+                                .getSalesCount(), mallProductCategory.getStock(), null,
+                        null, pageable);
                 setContentURI(variables,mallProductCategory);
                 MallProductCategoryModel mallProductCategoryModel = mallProductCategory.toMallProductCategoryModel();
                 mallProductCategoryModel.setMallGoodsPage(goodsPage);
@@ -216,23 +212,25 @@ public class WidgetInfo implements Widget, PreProcessWidget {
 
     }
 
+    @Override
+    public SiteType supportedSiteType() {
+        return SiteType.SITE_PC_SHOP;
+    }
+
     private void setContentURI(Map<String, Object> variables, MallProductCategory mallProductCategory) {
         try {
-            PageInfo contentPage = CMSContext.RequestContext().getWebApplicationContext().getBean(PageService.class)
+            PageInfo contentPage = getCMSServiceFromCMSContext(PageService.class)
                     .getClosestContentPage(mallProductCategory, (String) variables.get("uri"));
             mallProductCategory.setContentURI(contentPage.getPagePath());
         } catch (PageNotFoundException e) {
             log.warn("...", e);
             mallProductCategory.setContentURI((String) variables.get("uri"));
         }
-
     }
 
-    private MallProductCategory initMallProductCategory(MallProductCategory parent) {
-        CategoryService categoryService = CMSContext.RequestContext().getWebApplicationContext()
-                .getBean(CategoryService.class);
-        MallProductCategoryRepository mallProductCategoryRepository = CMSContext.RequestContext()
-                .getWebApplicationContext().getBean(MallProductCategoryRepository.class);
+    public MallProductCategory initMallProductCategory(MallProductCategory parent) {
+        CategoryService categoryService = getCMSServiceFromCMSContext(CategoryService.class);
+        MallProductCategoryRepository mallProductCategoryRepository = getCMSServiceFromCMSContext(MallProductCategoryRepository.class);
         MallProductCategory mallProductCategory = new MallProductCategory();
         mallProductCategory.setGoodTitle("");
         mallProductCategory.setSite(CMSContext.RequestContext().getSite());
@@ -246,15 +244,11 @@ public class WidgetInfo implements Widget, PreProcessWidget {
     }
 
 
-    private Article initArticle() {
-        CategoryService categoryService = CMSContext.RequestContext().getWebApplicationContext()
-                .getBean(CategoryService.class);
-        CategoryRepository categoryRepository = CMSContext.RequestContext().getWebApplicationContext().getBean
-                (CategoryRepository.class);
-        ArticleRepository articleRepository = CMSContext.RequestContext().getWebApplicationContext().getBean
-                (ArticleRepository.class);
-        ContentService contentService = CMSContext.RequestContext().getWebApplicationContext().getBean(ContentService
-                .class);
+    public Article initArticle() {
+        CategoryService categoryService = getCMSServiceFromCMSContext(CategoryService.class);
+        CategoryRepository categoryRepository = getCMSServiceFromCMSContext(CategoryRepository.class);
+        ArticleRepository articleRepository = getCMSServiceFromCMSContext(ArticleRepository.class);
+        ContentService contentService = getCMSServiceFromCMSContext(ContentService.class);
         Category category = new Category();
         category.setName("文章数据源");
         category.setSite(CMSContext.RequestContext().getSite());
@@ -266,6 +260,7 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         article.setContent("文章内容");
         article.setCreateTime(LocalDateTime.now());
         article.setTitle("文章标题");
+        article.setArticleSource(ArticleSource.ORIGINAL);
         article.setCategory(category);
         article.setAuthor("系统");
         contentService.init(article);

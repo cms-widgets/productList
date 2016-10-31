@@ -6,7 +6,7 @@
             <h3 th:text="${mallProductCategory.name}">数据源</h3>
         </div>
         <!--左边文章内容-->
-        <div class="product-lists-left-content" th:utext="${leftArticle.content}">
+        <div class="product-lists-left-content leftArticle" th:utext="${leftArticle.content}">
             <img src="//img12.360buyimg.com/da/jfs/t3049/216/3946578997/14563/521bfae7/57fb5fa1N333e77df.jpg" width="330" height="476">
         </div>
     </div>
@@ -17,12 +17,12 @@
                 <li class="tab-item tab-selected">
                     <a href="javascript:void(0)" th:text="${rightArticle.title}">热门</a>
                     <!--推荐-->
-                    <div class="tab-content tab-content-index" th:utext="${rightArticle.content}">
+                    <div class="tab-content tab-content-index rightArticle" th:utext="${rightArticle.content}">
                         <img src="http://oevfoawam.bkt.clouddn.com/test-pic.png" width="880" height="476">
                     </div>
                 </li>
                 <!--商城产品数据源item-->
-                <li class="tab-item" th:each="mallProduct:${mallProductDataList}">
+                <li class="tab-item mallProduct" th:each="mallProduct:${mallProductDataList}">
                     <a href="javascript:void(0)" th:text="${mallProduct.name}">大家电</a>
                     <!--item对应的商城产品列表-->
                     <div class="tab-content">
