@@ -11,10 +11,8 @@ package com.huotu.hotcms.widget.productList;
 
 import com.huotu.hotcms.service.common.ArticleSource;
 import com.huotu.hotcms.service.common.ContentType;
-import com.huotu.hotcms.service.common.SiteType;
 import com.huotu.hotcms.service.entity.Article;
 import com.huotu.hotcms.service.entity.Category;
-import com.huotu.hotcms.service.entity.MallClassCategory;
 import com.huotu.hotcms.service.entity.MallProductCategory;
 import com.huotu.hotcms.service.exception.PageNotFoundException;
 import com.huotu.hotcms.service.model.MallProductCategoryModel;
@@ -29,7 +27,6 @@ import com.huotu.hotcms.widget.PreProcessWidget;
 import com.huotu.hotcms.widget.Widget;
 import com.huotu.hotcms.widget.WidgetStyle;
 import com.huotu.hotcms.widget.entity.PageInfo;
-import com.huotu.hotcms.widget.service.CMSDataSourceService;
 import com.huotu.hotcms.widget.service.PageService;
 import com.huotu.huobanplus.common.entity.Goods;
 import com.huotu.huobanplus.sdk.common.repository.GoodsRestRepository;
@@ -57,10 +54,10 @@ import java.util.Map;
  * @author CJ
  */
 public class WidgetInfo implements Widget, PreProcessWidget {
-    private static final Log log = LogFactory.getLog(WidgetInfo.class);
     public static final String LEFT_ARTICLE_SERIAL = "leftArticleSerial";
     public static final String RIGHT_ARTICLE_SERIAL = "rightArticleSerial";
     public static final String MALL_PRODUCT_SERIAL = "mallProductSerial";
+    private static final Log log = LogFactory.getLog(WidgetInfo.class);
     private static final String RIGHT_TITLE = "title";
     private static final String LEFT_CONTENT = "leftArticle";
     private static final String RIGHT_CONTENT = "rightArticle";
@@ -95,7 +92,7 @@ public class WidgetInfo implements Widget, PreProcessWidget {
 
     @Override
     public String dependVersion() {
-        return "1.0-SNAPSHOT";
+        return "1.0";
     }
 
     @Override
@@ -212,10 +209,6 @@ public class WidgetInfo implements Widget, PreProcessWidget {
 
     }
 
-    @Override
-    public SiteType supportedSiteType() {
-        return SiteType.SITE_PC_SHOP;
-    }
 
     private void setContentURI(Map<String, Object> variables, MallProductCategory mallProductCategory) {
         try {
