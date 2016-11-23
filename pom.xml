@@ -67,13 +67,13 @@
         <dependency>
             <groupId>com.huotu.hotcms</groupId>
             <artifactId>widget-test</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.huotu.hotcms</groupId>
             <artifactId>widget-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1</version>
         </dependency>
 
     </dependencies>
@@ -132,7 +132,7 @@
             <plugin>
                 <groupId>com.huotu.hotcms</groupId>
                 <artifactId>widget-preview</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.1</version>
             </plugin>
         </plugins>
     </build>

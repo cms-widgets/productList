@@ -30,9 +30,11 @@ import com.huotu.hotcms.widget.entity.PageInfo;
 import com.huotu.hotcms.widget.service.PageService;
 import com.huotu.huobanplus.common.entity.Goods;
 import com.huotu.huobanplus.sdk.common.repository.GoodsRestRepository;
+import com.huotu.huobanplus.sdk.common.repository.MerchantRestRepository;
 import me.jiangcai.lib.resource.service.ResourceService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -63,6 +65,8 @@ public class WidgetInfo implements Widget, PreProcessWidget {
     private static final String RIGHT_CONTENT = "rightArticle";
     private static final String MALL_PRODUCT_DATA_LIST = "mallProductDataList";
     private static final String MALL_PRODUCT_CATEGORY = "mallProductCategory";
+    @Autowired
+    private MerchantRestRepository merchantRestRepository;
 
     @Override
     public String groupId() {
@@ -195,7 +199,7 @@ public class WidgetInfo implements Widget, PreProcessWidget {
                         , mallProductCategory.getMaxPrice(), null, mallProductCategory.getGoodTitle(), mallProductCategory
                                 .getSalesCount(), mallProductCategory.getStock(), null,
                         null, pageable);
-                setContentURI(variables,mallProductCategory);
+//                setContentURI(variables,mallProductCategory);
                 MallProductCategoryModel mallProductCategoryModel = mallProductCategory.toMallProductCategoryModel();
                 mallProductCategoryModel.setMallGoodsPage(goodsPage);
                 list.add(mallProductCategoryModel);
@@ -206,9 +210,22 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         MallProductCategory mallProductCategory = mallProductCategoryRepository.findBySerial(mallProductSerial);
         variables.put(MALL_PRODUCT_CATEGORY, mallProductCategory);
         variables.put(MALL_PRODUCT_DATA_LIST, list);
+        try {
+            if (CMSContext.RequestContext().getSite().getOwner() != null) {
+                String domain = merchantRestRepository.getOneByPK(CMSContext.RequestContext().getSite().getOwner().getCustomerId())
+                        .getSubDomain();
+                domain = domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner()
+                        .getCustomerId();
+                variables.put("goodDetailUrl", domain);
+            }
+            throw new Exception("owner is null");
+        } catch (Exception e) {
+            log.error("error: " + e.getMessage());
+            variables.put("goodDetailUrl", "");
+        }
+
 
     }
-
 
     private void setContentURI(Map<String, Object> variables, MallProductCategory mallProductCategory) {
         try {
