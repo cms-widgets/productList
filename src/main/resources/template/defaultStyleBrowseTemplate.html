@@ -7,7 +7,7 @@
         </div>
         <!--左边文章内容-->
         <div class="product-lists-left-content leftArticle" th:utext="${leftArticle.content}">
-            <img src="//img12.360buyimg.com/da/jfs/t3049/216/3946578997/14563/521bfae7/57fb5fa1N333e77df.jpg" width="330" height="476">
+            <img src="//img12.360buyimg.com/da/jfs/t3049/216/3946578997/14563/521bfae7/57fb5fa1N333e77df.jpg">
         </div>
     </div>
     <div class="product-lists-right">
@@ -18,7 +18,7 @@
                     <a href="javascript:void(0)" th:text="${rightArticle.title}">热门</a>
                     <!--推荐-->
                     <div class="tab-content tab-content-index rightArticle" th:utext="${rightArticle.content}">
-                        <img src="http://oevfoawam.bkt.clouddn.com/test-pic.png" width="880" height="476">
+                        <img src="http://oevfoawam.bkt.clouddn.com/test-pic.png">
                     </div>
                 </li>
                 <!--商城产品数据源item-->
@@ -33,15 +33,16 @@
                                    target="_blank" class="goods-image">
                                     <img th:src="${goods.smallPic.value}" width="130" height="130"
                                          th:alt="${goods.title}" alt="火图科技"
-                                          src="//img10.360buyimg.com/N3/jfs/t1918/169/2366995781/85503/38fffc90/57057f7eN936fd6c0.jpg">
+                                          src="http://placehold.it/130x130/d5975c/ffffff?text=产品一">
                                 </a>
                                 <p class="goods-name">
                                     <a target="_blank" th:text="${goods.title}" href="javascript:void(0)"
                                        th:href="${goodDetailUrl+'/'+goods.id+'/'}">
                                         华为 P9 全网通 3GB+32GB版 流光金 移动联通电信4G手机 双卡双待</a>
                                 </p>
-                                <div class="goods-price"><span
-                                        th:text="${'￥'+ #numbers.formatDecimal(goods.price,1,2)}"></span></div>
+                                <div class="goods-price">
+                                    <span th:text="${#numbers.formatDecimal(goods.price,1,2)}"></span>
+                                </div>
                             </li>
                         </ul>
                     </div>
