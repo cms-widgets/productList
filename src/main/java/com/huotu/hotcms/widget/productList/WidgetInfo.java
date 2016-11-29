@@ -21,6 +21,7 @@ import com.huotu.hotcms.service.repository.CategoryRepository;
 import com.huotu.hotcms.service.repository.MallProductCategoryRepository;
 import com.huotu.hotcms.service.service.CategoryService;
 import com.huotu.hotcms.service.service.ContentService;
+import com.huotu.hotcms.service.service.MallService;
 import com.huotu.hotcms.widget.CMSContext;
 import com.huotu.hotcms.widget.ComponentProperties;
 import com.huotu.hotcms.widget.PreProcessWidget;
@@ -158,7 +159,8 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         //查找商城产品数据源
         MallProductCategoryRepository mallProductCategoryRepository = CMSContext.RequestContext()
                 .getWebApplicationContext().getBean(MallProductCategoryRepository.class);
-        List<MallProductCategory> mallProductCategoryList = mallProductCategoryRepository.findBySite(CMSContext
+        //todo 过滤删除的数据源
+        List<MallProductCategory> mallProductCategoryList = mallProductCategoryRepository.findBySiteAndDeletedFalse(CMSContext
                 .RequestContext().getSite());
         if (mallProductCategoryList.isEmpty()) {
             MallProductCategory mallProductCategory = initMallProductCategory(null);
@@ -185,7 +187,8 @@ public class WidgetInfo implements Widget, PreProcessWidget {
 
         String mallProductSerial = (String) variables.get(MALL_PRODUCT_SERIAL);
         MallProductCategoryRepository mallProductCategoryRepository = getCMSServiceFromCMSContext(MallProductCategoryRepository.class);
-        List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_Serial(CMSContext
+        //todo 获取列表要过滤掉已删除的数据源
+        List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_SerialAndDeletedFalse(CMSContext
                 .RequestContext().getSite(), mallProductSerial);
         GoodsRestRepository goodsRestRepository = getCMSServiceFromCMSContext(GoodsRestRepository.class);
         Pageable pageable = new PageRequest(0, 8, Sort.Direction.ASC, "id");
@@ -210,19 +213,10 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         MallProductCategory mallProductCategory = mallProductCategoryRepository.findBySerial(mallProductSerial);
         variables.put(MALL_PRODUCT_CATEGORY, mallProductCategory);
         variables.put(MALL_PRODUCT_DATA_LIST, list);
-        try {
-            if (CMSContext.RequestContext().getSite().getOwner() != null) {
-                String domain = merchantRestRepository.getOneByPK(CMSContext.RequestContext().getSite().getOwner().getCustomerId())
-                        .getSubDomain();
-                domain = domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner()
-                        .getCustomerId();
-                variables.put("goodDetailUrl", domain);
-            }
-            throw new Exception("owner is null");
-        } catch (Exception e) {
-            log.error("error: " + e.getMessage());
-            variables.put("goodDetailUrl", "");
-        }
+        MallService mallService = getCMSServiceFromCMSContext(MallService.class);
+        String domain = mallService.getMallDomain(CMSContext.RequestContext().getSite().getOwner());
+        domain = domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner().getCustomerId();
+        variables.put("goodDetailUrl", domain);
 
 
     }

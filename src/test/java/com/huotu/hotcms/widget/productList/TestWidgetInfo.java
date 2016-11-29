@@ -70,11 +70,11 @@ public class TestWidgetInfo extends WidgetTest {
         String mallProductSerial = (String) properties.get(WidgetInfo.MALL_PRODUCT_SERIAL);
         MallProductCategoryRepository mallProductCategoryRepository = widget.getCMSServiceFromCMSContext
                 (MallProductCategoryRepository.class);
-        List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_Serial(CMSContext
+        List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_SerialAndDeletedFalse(CMSContext
                 .RequestContext().getSite(), mallProductSerial);
         assertThat(dataList.size()).isEqualTo(webElement.findElements(By.className("mallProduct")).size());
-        assertThat(leftArticle.getContent()).isEqualTo(webElement.findElement(By.className("leftArticle")).getText());
-        assertThat(rightArticle.getContent()).isEqualTo(webElement.findElement(By.className("rightArticle")).getText());
+        assertThat(leftArticle.getContent()).contains(webElement.findElement(By.className("leftArticle")).getText());
+        assertThat(rightArticle.getContent()).contains(webElement.findElement(By.className("rightArticle")).getText());
 
     }
 
