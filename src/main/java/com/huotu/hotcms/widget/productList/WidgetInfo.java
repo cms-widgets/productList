@@ -137,6 +137,10 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         return null;
     }
 
+    @Override
+    public boolean disabled() {
+        return CMSContext.RequestContext().getSite().getOwner() != null && CMSContext.RequestContext().getSite().getOwner().getCustomerId() != null;
+    }
 
     @Override
     public ComponentProperties defaultProperties(ResourceService resourceService) throws IOException {
@@ -187,7 +191,6 @@ public class WidgetInfo implements Widget, PreProcessWidget {
 
         String mallProductSerial = (String) variables.get(MALL_PRODUCT_SERIAL);
         MallProductCategoryRepository mallProductCategoryRepository = getCMSServiceFromCMSContext(MallProductCategoryRepository.class);
-        //todo 获取列表要过滤掉已删除的数据源
         List<MallProductCategory> dataList = mallProductCategoryRepository.findBySiteAndParent_SerialAndDeletedFalse(CMSContext
                 .RequestContext().getSite(), mallProductSerial);
         GoodsRestRepository goodsRestRepository = getCMSServiceFromCMSContext(GoodsRestRepository.class);
@@ -214,7 +217,12 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         variables.put(MALL_PRODUCT_CATEGORY, mallProductCategory);
         variables.put(MALL_PRODUCT_DATA_LIST, list);
         MallService mallService = getCMSServiceFromCMSContext(MallService.class);
-        String domain = mallService.getMallDomain(CMSContext.RequestContext().getSite().getOwner());
+        String domain = null;
+        try {
+            domain = mallService.getMallDomain(CMSContext.RequestContext().getSite().getOwner());
+        } catch (IOException e) {
+            log.error("通讯异常", e);
+        }
         domain = domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner().getCustomerId();
         variables.put("goodDetailUrl", domain);
 
