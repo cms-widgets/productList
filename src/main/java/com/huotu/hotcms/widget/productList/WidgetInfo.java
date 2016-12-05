@@ -197,35 +197,34 @@ public class WidgetInfo implements Widget, PreProcessWidget {
         Pageable pageable = new PageRequest(0, 8, Sort.Direction.ASC, "id");
         List<MallProductCategoryModel> list = new ArrayList<>();
         for (MallProductCategory mallProductCategory : dataList) {
+            MallProductCategoryModel mallProductCategoryModel = mallProductCategory.toMallProductCategoryModel();
             try {
                 Page<Goods> goodsPage = goodsRestRepository.search(mallProductCategory.getSite().getOwner()
                                 .getCustomerId(),
                         mallProductCategory
                                 .getMallCategoryId(), null, mallProductCategory.getMallBrandId(), mallProductCategory.getMinPrice()
                         , mallProductCategory.getMaxPrice(), null, mallProductCategory.getGoodTitle(), mallProductCategory
-                                .getSalesCount(), mallProductCategory.getStock(), null,
-                        null, pageable);
+                                .getSalesCount(), mallProductCategory.getStock(), false,
+                        true, pageable);
 //                setContentURI(variables,mallProductCategory);
-                MallProductCategoryModel mallProductCategoryModel = mallProductCategory.toMallProductCategoryModel();
                 mallProductCategoryModel.setMallGoodsPage(goodsPage);
                 list.add(mallProductCategoryModel);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("通讯异常", e);
+                list.add(mallProductCategoryModel);
             }
         }
         MallProductCategory mallProductCategory = mallProductCategoryRepository.findBySerial(mallProductSerial);
         variables.put(MALL_PRODUCT_CATEGORY, mallProductCategory);
         variables.put(MALL_PRODUCT_DATA_LIST, list);
         MallService mallService = getCMSServiceFromCMSContext(MallService.class);
-        String domain = null;
         try {
-            domain = mallService.getMallDomain(CMSContext.RequestContext().getSite().getOwner());
+            String domain = mallService.getMallDomain(CMSContext.RequestContext().getSite().getOwner());
+            variables.put("goodDetailUrl", "http://" + domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner().getCustomerId());
         } catch (IOException e) {
             log.error("通讯异常", e);
+            variables.put("goodDetailUrl", "#");
         }
-        domain = domain + "/Mall/GoodDetail/" + CMSContext.RequestContext().getSite().getOwner().getCustomerId();
-        variables.put("goodDetailUrl", domain);
-
 
     }
 
